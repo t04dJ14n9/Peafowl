@@ -1,3 +1,0 @@
-[submodule "src/libSSS"]
-	path = src/libSSS
-	url = git@github.com:HangeTeng/libSSS.git
