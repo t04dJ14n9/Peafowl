@@ -1,0 +1,16 @@
+.vscode/
+build/
+
+# libOTe build output and downloaded third-party sources
+libOTe/out/
+libOTe/build/
+libOTe/cryptoTools/thirdparty/boost/
+libOTe/cryptoTools/thirdparty/relic/build_linux/
+libOTe/cryptoTools/thirdparty/unix/
+libOTe/cryptoTools/thirdparty/*.bz2
+libOTe/cryptoTools/thirdparty/*.tar.*
+
+# Compiled artifacts
+*.so
+*.pyc
+__pycache__/
