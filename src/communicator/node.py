@@ -35,6 +35,7 @@ class Node():
         self.totalDataRecv = 0
         self.is_server = is_server
         self.STSender = None
+        self.STSenders = None
         self.STRecver = None
     
 
@@ -83,7 +84,15 @@ class Node():
         if self.is_server:
             if size is None or permute is None:
                 raise ValueError("Invalid: missing size or permute")
-            self.STSender = Sender(size=size, permute=permute, p=p, ios_threads = ios_threads)
+            # permute may be a list-of-permutations (one per client) or a single permutation
+            if isinstance(permute, list) and len(permute) > 0 and isinstance(permute[0], list):
+                # Multiple senders: one per client node (dset_rank)
+                self.STSenders = {i: Sender(size=size, permute=permute[i], p=p, ios_threads=ios_threads)
+                                  for i in range(len(permute))}
+                self.STSender = None
+            else:
+                self.STSender = Sender(size=size, permute=permute, p=p, ios_threads=ios_threads)
+                self.STSenders = None
         else:
             self.STRecver = Receiver(ios_threads = ios_threads)
 
@@ -107,10 +116,10 @@ class Node():
         # result = self.STSender.run(size=size,
         if port_mode:
             all_ip = Sip +":"+str(port + tag)
-            STSender = self.STSender
+            STSender = self.STSenders[dset_rank] if self.STSenders is not None else self.STSender
         else:
             all_ip = Sip +":"+str(port+ dset_rank )
-            STSender = self.STSender
+            STSender = self.STSenders[dset_rank] if self.STSenders is not None else self.STSender
         result = STSender.run(size=size,
                         sessionHint=sessionHint,
                         p=p,
@@ -162,18 +171,22 @@ class Node():
             return size + sum(self.get_size_recursive(item) for item in obj)
         elif isinstance(obj, dict):
             return size + sum(self.get_size_recursive(key) + self.get_size_recursive(value) for key, value in obj.items())
-        
+
         return size
 
     def getTotalDataSent(self):
         totalDataSent = self.totalDataSent
         totalDataSent += self.STSender.getTotalDataSent() / 1024 / 1024 if self.STSender is not None else 0
+        if self.STSenders is not None:
+            totalDataSent += sum(s.getTotalDataSent() for s in self.STSenders.values()) / 1024 / 1024
         totalDataSent += self.STRecver.getTotalDataSent() / 1024 / 1024 if self.STRecver is not None else 0
         return totalDataSent
-    
+
     def getTotalDataRecv(self):
         totalDataRecv = self.totalDataRecv
         totalDataRecv += self.STSender.getTotalDataRecv() / 1024 / 1024 if self.STSender is not None else 0
+        if self.STSenders is not None:
+            totalDataRecv += sum(s.getTotalDataRecv() for s in self.STSenders.values()) / 1024 / 1024
         totalDataRecv += self.STRecver.getTotalDataRecv() / 1024 / 1024 if self.STRecver is not None else 0
         return totalDataRecv
 
@@ -267,10 +280,10 @@ class STNode():
         # result = self.STSender.run(size=size,
         if port_mode:
             all_ip = Sip +":"+str(port + tag)
-            STSender = self.STSender
+            STSender = self.STSenders[dset_rank] if self.STSenders is not None else self.STSender
         else:
             all_ip = Sip +":"+str(port+ dset_rank )
-            STSender = self.STSender
+            STSender = self.STSenders[dset_rank] if self.STSenders is not None else self.STSender
         result = STSender.run(size=size,
                         sessionHint=sessionHint,
                         p=p,

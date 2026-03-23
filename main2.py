@@ -173,7 +173,7 @@ def main():
             all_indices = list(range(sub_examples))
             random.shuffle(all_indices)
             permutes.append(all_indices)
-        node.STinit(size=sub_examples,permutes=permutes,p=q)
+        node.STinit(size=sub_examples,permute=permutes,p=q)
         # print(node.STSenders)
         # print(permutes)
     else:
@@ -216,16 +216,15 @@ def main():
         #     # STsend_thread_future.append(executor.submit(STsend_thread, args))
         #     executor.submit(STsend_thread, args)
         os.environ['RDMAV_FORK_SAFE'] = '1'
-        import multiprocessing
-        with multiprocessing.Pool(processes=25) as pool:
-            pool.map(STsend_thread, task_args)
+        with ThreadPoolExecutor(max_workers=25) as pool:
+            list(pool.map(STsend_thread, task_args))
             # STsend_thread(args)
         # print(all_deltas[0][1][0])
     else:
         a_s = np.empty((client_size, sub_examples, n), dtype=object)
         b_s = np.empty((client_size, sub_examples, n), dtype=object)
 
-        @atimer
+        # @atimer  # removed: atimer creates unpicklable closure for multiprocessing.Pool
         def STrecv_thread(args):
             dset_rank, input_dim = args
             if client_rank == dset_rank:
@@ -250,9 +249,8 @@ def main():
         # results = executor.map(STrecv_thread, task_args)
         # STrecv_thread_future = []
         os.environ['RDMAV_FORK_SAFE'] = '1'
-        import multiprocessing
-        with multiprocessing.Pool(processes=25) as pool:
-            pool.map(STrecv_thread, task_args)
+        with ThreadPoolExecutor(max_workers=25) as pool:
+            list(pool.map(STrecv_thread, task_args))
             # STrecv_thread(args)
 
         # if client_rank == 0:

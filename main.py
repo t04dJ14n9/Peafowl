@@ -94,7 +94,7 @@ def main():
 
     #* initial node
     if is_server:
-        node = Node(None, None, global_comm, client_comm)
+        node = Node(None, None, global_comm, client_comm, is_server)
         temp_dataset = []
         temp_prg_dataset = []
         temp_folder_path = folder_path + "/temp"
@@ -125,7 +125,7 @@ def main():
                                         data_shape=(features, ),
                                         target_shape=(),
                                         dtype=np.int64)
-        node = Node(src_dataset, tgt_dataset, global_comm, client_comm)
+        node = Node(src_dataset, tgt_dataset, global_comm, client_comm, is_server)
 
     # print("start test...")
     timer.set_time_point("start_test")
