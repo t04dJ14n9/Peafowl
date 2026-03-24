@@ -1,0 +1,25 @@
+# Git
+.git/
+
+# Build artifacts (rebuilt inside Docker)
+src/libSSS/build/
+src/libSSS/libOTe/out/
+src/libSSS/libOTe/build/
+src/libSSS/libOTe/cryptoTools/thirdparty/boost/
+src/libSSS/libOTe/cryptoTools/thirdparty/relic/build_linux/
+src/libSSS/libOTe/cryptoTools/thirdparty/unix/
+src/libSSS/libOTe/cryptoTools/thirdparty/*.bz2
+src/utils/crypto/*.so
+test/build/
+
+# Runtime data (generated at run time)
+data/
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Profile output
+*.lprof
+*.txt
