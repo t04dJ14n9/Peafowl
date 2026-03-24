@@ -69,6 +69,8 @@ RUN echo "/app/src/libSSS/libOTe/cryptoTools/thirdparty/unix/lib" \
         >> /etc/ld.so.conf.d/libSSS.conf && \
     echo "/app/src/libSSS/libOTe/out/install/linux/lib" \
         >> /etc/ld.so.conf.d/libSSS.conf && \
+    ln -sf /usr/lib/x86_64-linux-gnu/libmpich.so.12 \
+           /usr/lib/x86_64-linux-gnu/libmpi.so.12 && \
     ldconfig
 
 # ── 9. Build libSSS Python extension (SSS + libosn) ───────────────────────────
@@ -85,7 +87,7 @@ RUN mkdir -p /app/src/libSSS/build && \
 RUN cd /app/src/utils/crypto && \
     SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_path("platlib"))')" && \
     PY_INC="$(python3 -m pybind11 --includes)" && \
-    EXT="$(python3-config --extension-suffix)" && \
+    EXT="$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')" && \
     eval "c++ -O3 -Wall -shared -std=c++11 -fPIC $PY_INC lwr.cpp -o lwr_cpp${EXT}" && \
     cp lwr_cpp.cpython-*.so "$SITE/"
 
@@ -93,15 +95,13 @@ RUN cd /app/src/utils/crypto && \
 RUN mkdir -p /app/data/log /app/data/prg /app/data/lprof
 
 # ── 12. Smoke-test all imports ─────────────────────────────────────────────────
-RUN python3 -c "
-import mpi4py, numpy, torch, h5py, cryptography, SSS, lwr_cpp
-print('All imports OK')
-print('  mpi4py:', mpi4py.__version__)
-print('  numpy:', numpy.__version__)
-print('  torch:', torch.__version__)
-print('  SSS:', dir(SSS))
-print('  lwr_cpp:', dir(lwr_cpp))
-"
+RUN python3 -c 'import mpi4py, numpy, torch, h5py, cryptography, SSS, lwr_cpp; \
+print("All imports OK"); \
+print("  mpi4py:", mpi4py.__version__); \
+print("  numpy:", numpy.__version__); \
+print("  torch:", torch.__version__); \
+print("  SSS:", dir(SSS)); \
+print("  lwr_cpp:", dir(lwr_cpp))'
 
 # ── Runtime ────────────────────────────────────────────────────────────────────
 ENV PATH="/usr/bin:/usr/lib/x86_64-linux-gnu/mpich/bin:${PATH}"
